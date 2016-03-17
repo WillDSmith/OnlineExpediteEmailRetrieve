@@ -75,20 +75,16 @@ namespace OLEemailRetrieve
                     var csName = resp.Name;
                     var csDateCreated = resp.CreationDate;
 
-                    string mEmailTo = csEmail;  //ConfigurationManager.AppSettings["EmailTo"].ToString().Split(',');
+                    string mEmailTo = csEmail;                                                  //ConfigurationManager.AppSettings["EmailTo"].ToString().Split(',');
                     string mEmailFrom = ConfigurationManager.AppSettings["EmailFrom"];
-                    string mEmailSubject = "Reposnse from Germany, for Online Expedites";//ConfigurationManager.AppSettings["EmailSubject"];
+                    string mEmailSubject = "Reposnse from Germany, for Online Expedites";       //ConfigurationManager.AppSettings["EmailSubject"];
 
                     ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
                     service.UseDefaultCredentials = true;
                     service.AutodiscoverUrl(mEmailFrom, RedirectionUrlValidationCallback);
 
                     EmailMessage email = new EmailMessage(service);
-                    //foreach (String s in mEmailTo)
-                    //{
-                    //    email.ToRecipients.Add(s);
-                    //}
-
+                    
                     email.Subject = mEmailSubject;
                     email.Body = new MessageBody(" Hi, " + csName + " Here is the response for the request you sent on " + csDateCreated + " (" + Response + ")" );
                     //email.Attachments.AddFileAttachment(path + filename);
