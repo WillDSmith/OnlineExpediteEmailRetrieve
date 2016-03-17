@@ -9,6 +9,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using System.Data;
 using System.Configuration;
 using System.Data.SqlClient;
+using Microsoft.Exchange.WebServices.Data;
 
 namespace OLEemailRetrieve
 {
@@ -61,7 +62,40 @@ namespace OLEemailRetrieve
 
                 if (resp != null)
                 {
+                    //FileStream filestream = new FileStream(log + logfilename, FileMode.Create);
+                    //var streamwriter = new StreamWriter(filestream);
+                    //streamwriter.AutoFlush = true;
+                    //Console.SetOut(streamwriter);
+                    //Console.SetError(streamwriter);
+                    
                     resp.Response = Response;
+
+                    // Get the Customer Service email and send an email with the response from Germany
+                    var csEmail = resp.Email;
+                    var csName = resp.Name;
+                    var csDateCreated = resp.CreationDate;
+
+                    string mEmailTo = csEmail;  //ConfigurationManager.AppSettings["EmailTo"].ToString().Split(',');
+                    string mEmailFrom = ConfigurationManager.AppSettings["EmailFrom"];
+                    string mEmailSubject = "Reposnse from Germany, for Online Expedites";//ConfigurationManager.AppSettings["EmailSubject"];
+
+                    ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
+                    service.UseDefaultCredentials = true;
+                    service.AutodiscoverUrl(mEmailFrom, RedirectionUrlValidationCallback);
+
+                    EmailMessage email = new EmailMessage(service);
+                    //foreach (String s in mEmailTo)
+                    //{
+                    //    email.ToRecipients.Add(s);
+                    //}
+
+                    email.Subject = mEmailSubject;
+                    email.Body = new MessageBody(" Hi, " + csName + " Here is the response for the request you sent on " + csDateCreated + " (" + Response + ")" );
+                    //email.Attachments.AddFileAttachment(path + filename);
+
+                    //streamwriter.WriteLine("Sending email...");
+                    email.Send();
+                    //streamwriter.WriteLine("Email Sent....!");
                 }
 
                 using (var dbCtx = new InternalEntities())
@@ -70,6 +104,8 @@ namespace OLEemailRetrieve
 
                     dbCtx.SaveChanges();
                 }
+
+
             }
         }
 
@@ -86,6 +122,23 @@ namespace OLEemailRetrieve
             {
                 return value;
             }
+        }
+
+        private static bool RedirectionUrlValidationCallback(string redirectionUrl)
+        {
+            // The default for the validation callback is to reject the URL.
+            bool result = false;
+
+            Uri redirectionUri = new Uri(redirectionUrl);
+
+            // Validate the contents of the redirection URL. In this simple validation
+            // callback, the redirection URL is considered valid if it is using HTTPS
+            // to encrypt the authentication credentials. 
+            if (redirectionUri.Scheme == "https")
+            {
+                result = true;
+            }
+            return result;
         }
 
     }

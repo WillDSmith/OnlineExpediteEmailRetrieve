@@ -15,6 +15,8 @@ namespace OLEemailRetrieve
     {
         static void Main(string[] args)
         {
+            InternalEntities db = new InternalEntities();
+            
             Conversion ssConversion = new Conversion();
             
             string dt = DateTime.Now.ToString("MMddyyyyhhmmss");
