@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="InternalModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="OnlineExpedite">
+          <Key>
+            <PropertyRef Name="RequestId" />
+          </Key>
+          <Property Name="RequestId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" />
+          <Property Name="Email" Type="nvarchar" MaxLength="50" />
+          <Property Name="CreationDate" Type="datetime" />
+          <Property Name="EDPToolNumber" Type="nvarchar" MaxLength="50" />
+          <Property Name="PurchaseOrderToGermany" Type="nvarchar" MaxLength="50" />
+          <Property Name="LineNumber" Type="int" />
+          <Property Name="QuantityRequested" Type="int" />
+          <Property Name="DateSentTimeStamp" Type="datetime" />
+          <Property Name="Message" Type="nvarchar" MaxLength="50" />
+          <Property Name="Response" Type="nvarchar(max)" />
+          <Property Name="Requestor" Type="nvarchar" MaxLength="50" />
+          <Property Name="RequestorPhoneNumber" Type="nvarchar" MaxLength="50" />
+          <Property Name="RequestorEmailAddress" Type="nvarchar" MaxLength="50" />
+          <Property Name="CSNotes" Type="nvarchar(max)" />
+          <Property Name="GermanyResponder" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityContainer Name="InternalModelStoreContainer">
+          <EntitySet Name="OnlineExpedite" EntityType="Self.OnlineExpedite" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="InternalModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="OnlineExpedite">
+          <Key>
+            <PropertyRef Name="RequestId" />
+          </Key>
+          <Property Name="RequestId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Email" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CreationDate" Type="DateTime" Precision="3" />
+          <Property Name="EDPToolNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="PurchaseOrderToGermany" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="LineNumber" Type="Int32" />
+          <Property Name="QuantityRequested" Type="Int32" />
+          <Property Name="DateSentTimeStamp" Type="DateTime" Precision="3" />
+          <Property Name="Message" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Response" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Requestor" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="RequestorPhoneNumber" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="RequestorEmailAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CSNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="GermanyResponder" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityContainer Name="InternalEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="OnlineExpedites" EntityType="Self.OnlineExpedite" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="InternalModelStoreContainer" CdmEntityContainer="InternalEntities">
+          <EntitySetMapping Name="OnlineExpedites">
+            <EntityTypeMapping TypeName="InternalModel.OnlineExpedite">
+              <MappingFragment StoreEntitySet="OnlineExpedite">
+                <ScalarProperty Name="GermanyResponder" ColumnName="GermanyResponder" />
+                <ScalarProperty Name="RequestId" ColumnName="RequestId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+                <ScalarProperty Name="EDPToolNumber" ColumnName="EDPToolNumber" />
+                <ScalarProperty Name="PurchaseOrderToGermany" ColumnName="PurchaseOrderToGermany" />
+                <ScalarProperty Name="LineNumber" ColumnName="LineNumber" />
+                <ScalarProperty Name="QuantityRequested" ColumnName="QuantityRequested" />
+                <ScalarProperty Name="DateSentTimeStamp" ColumnName="DateSentTimeStamp" />
+                <ScalarProperty Name="Message" ColumnName="Message" />
+                <ScalarProperty Name="Response" ColumnName="Response" />
+                <ScalarProperty Name="Requestor" ColumnName="Requestor" />
+                <ScalarProperty Name="RequestorPhoneNumber" ColumnName="RequestorPhoneNumber" />
+                <ScalarProperty Name="RequestorEmailAddress" ColumnName="RequestorEmailAddress" />
+                <ScalarProperty Name="CSNotes" ColumnName="CSNotes" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
