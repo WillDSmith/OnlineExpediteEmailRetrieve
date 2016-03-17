@@ -55,6 +55,7 @@ namespace OLEemailRetrieve
                 streamwriter.WriteLine(ex.ToString());
             }
 
+            // Email App Settings
             string mEmailTo = ConfigurationManager.AppSettings["EmailTo"];
             string mEmailFrom = ConfigurationManager.AppSettings["EmailFrom"];
             string mEmailSubject = ConfigurationManager.AppSettings["EmailSubject"];
