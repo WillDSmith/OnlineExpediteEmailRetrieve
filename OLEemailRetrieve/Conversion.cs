@@ -10,6 +10,7 @@ using System.Data;
 using System.Configuration;
 using System.Data.SqlClient;
 using Microsoft.Exchange.WebServices.Data;
+using System.IO;
 
 namespace OLEemailRetrieve
 {
@@ -45,12 +46,12 @@ namespace OLEemailRetrieve
                     {
                         tempRow[i] = GetCellValue(spreadSheetDocument, row.Descendants<Cell>().ElementAt(i));
                     }
-
                     dt.Rows.Add(tempRow);
                 }
-
             }
             dt.Rows.RemoveAt(0); // Remove header row.
+
+            
 
             for (int i = 0; i < dt.Rows.Count; i++)
             {
@@ -62,12 +63,6 @@ namespace OLEemailRetrieve
 
                 if (resp != null)
                 {
-                    //FileStream filestream = new FileStream(log + logfilename, FileMode.Create);
-                    //var streamwriter = new StreamWriter(filestream);
-                    //streamwriter.AutoFlush = true;
-                    //Console.SetOut(streamwriter);
-                    //Console.SetError(streamwriter);
-                    
                     resp.Response = Response;
 
                     // Get the Customer Service email and send an email with the response from Germany
@@ -75,23 +70,33 @@ namespace OLEemailRetrieve
                     var csName = resp.Name;
                     var csDateCreated = resp.CreationDate;
 
+                    string log = @"CSLogs\";
+                    string dtt = DateTime.Now.ToString("MMddyyyy");
+                    string logfilename = csName + dtt + ".txt";
+
+                    FileStream filestream = new FileStream(log + logfilename, FileMode.Create);
+                    var streamwriter = new StreamWriter(filestream);
+                    streamwriter.AutoFlush = true;
+                    Console.SetOut(streamwriter);
+                    Console.SetError(streamwriter);
+
                     string mEmailTo = csEmail;                                                  //ConfigurationManager.AppSettings["EmailTo"].ToString().Split(',');
-                    string mEmailFrom = ConfigurationManager.AppSettings["EmailFrom"];
-                    string mEmailSubject = "Reposnse from Germany, for Online Expedites";       //ConfigurationManager.AppSettings["EmailSubject"];
+                    string mEmailFrom = "wilsmi@guhring.com";                                   //ConfigurationManager.AppSettings["EmailFrom"];
+                    string mEmailSubject = "Response from Germany, for Online Expedites";       //ConfigurationManager.AppSettings["EmailSubject"];
 
                     ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
                     service.UseDefaultCredentials = true;
                     service.AutodiscoverUrl(mEmailFrom, RedirectionUrlValidationCallback);
 
                     EmailMessage email = new EmailMessage(service);
-                    
-                    email.Subject = mEmailSubject;
-                    email.Body = new MessageBody(" Hi, " + csName + " Here is the response for the request you sent on " + csDateCreated + " (" + Response + ")" );
-                    //email.Attachments.AddFileAttachment(path + filename);
 
-                    //streamwriter.WriteLine("Sending email...");
+                    email.ToRecipients.Add(csEmail);
+                    email.Subject = mEmailSubject;
+                    email.Body = new MessageBody(" Hi, " + csName + " here is the response for the request you sent on " + csDateCreated + " repsonse: " + " (" + Response + ")" );
+                   
+                    streamwriter.WriteLine("Sending email...");
                     email.Send();
-                    //streamwriter.WriteLine("Email Sent....!");
+                    streamwriter.WriteLine("Email Sent....!");
                 }
 
                 using (var dbCtx = new InternalEntities())
@@ -100,8 +105,6 @@ namespace OLEemailRetrieve
 
                     dbCtx.SaveChanges();
                 }
-
-
             }
         }
 
