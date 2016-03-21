@@ -18,7 +18,7 @@ namespace OLEemailRetrieve
     {
 
         public void ConvertXls(string fileName)
-        { 
+        {
             DataTable dt = new DataTable();
             InternalEntities db = new InternalEntities();
 
@@ -51,34 +51,35 @@ namespace OLEemailRetrieve
             }
             dt.Rows.RemoveAt(0); // Remove header row.
 
-            var responseList = new List<object>();
+            //var responseList = new List<object>();
+
             for (int i = 0; i < dt.Rows.Count; i++)
             {
                 DataRow dr = dt.Rows[i];
+                bool admin = true;
                 OnlineExpedite ol = new OnlineExpedite();
                 var RequestId = Convert.ToInt32(dr["Request Id"]);
                 var Response = dr["Response"].ToString();
                 var GermanyResponder = dr["Germany Responder"].ToString();
                 var resp = db.OnlineExpedites.Where(x => x.RequestId == RequestId).FirstOrDefault<OnlineExpedite>();
-                
 
-                if (resp != null)
+
+                if (resp != null && admin == false)
                 {
-                    //resp.Response = Response;
-
                     // Get the Customer Service email and send an email with the response from Germany
-                    ol.Email = "wilsmi@guhring.com";
+                    ol.Email = "wilsmi@guhring.com";   //Make sure to change this back to resp.Email
                     ol.CSFirstName = resp.CSFirstName;
                     ol.CSLastName = resp.CSLastName;
                     ol.CreationDate = resp.CreationDate;
                     ol.EDPToolNumber = resp.EDPToolNumber;
                     ol.Response = Response;
                     var csName = ol.CSFirstName + " " + ol.CSLastName;
-                    string msg = csName + ",<br/>" +
+
+                    var msg = csName + ",<br/>" +
                         "<br/>Here's the response for the requests you sent on " + ol.CreationDate + ", click <a href=\"http://staging.guhring.com/CustomerService/OnlineExpedite\">here</a>, to go to the Online Expedites Page." +
-                        "<br/><br/><b>Material Number:</b> " + "<font color=\"red\">" + ol.EDPToolNumber + "</font>" + 
+                        "<br/><br/><b>Material Number:</b> " + "<font color=\"red\">" + ol.EDPToolNumber + "</font>" +
                         "<br/><b>Response:</b> " + "<font color=\"red\">" + ol.Response + "</font>";
-                        
+
 
                     string log = @"CSLogs\";
                     string dtt = DateTime.Now.ToString("MMddyyyy");
@@ -105,28 +106,76 @@ namespace OLEemailRetrieve
                     message.Body = new MessageBody();
                     message.Body.BodyType = BodyType.HTML;
                     message.Body = msg;
-                   
+
                     streamwriter.WriteLine("Sending email...");
                     //message.Send();
-                    streamwriter.WriteLine("Email Sent....!");    
+                    streamwriter.WriteLine("Email Sent....!");
+                }
+                if (resp != null && admin == true)
+                {
+                    // Get the Customer Service email and send an email with the response from Germany
+                    ol.Email = "wilsmi@guhring.com";   //Make sure to change this back to resp.Email
+                    ol.CSFirstName = resp.CSFirstName;
+                    ol.CSLastName = resp.CSLastName;
+                    ol.CreationDate = resp.CreationDate;
+                    ol.EDPToolNumber = resp.EDPToolNumber;
+                    ol.Response = Response;
+                    var csName = ol.CSFirstName + " " + ol.CSLastName;
+
+                    var msg = csName + ",<br/>" +
+                        "<br/>Here's the response for the requests you sent on " + ol.CreationDate + ", click <a href=\"http://staging.guhring.com/CustomerService/OnlineExpedite\">here</a>, to go to the Online Expedites Page." +
+                        "<br/><br/><b>Material Number:</b> " + "<font color=\"red\">" + ol.EDPToolNumber + "</font>" +
+                        "<br/><b>Response:</b> " + "<font color=\"red\">" + ol.Response + "</font>";
+
+                    string log = @"CSLogs\";
+                    string dtt = DateTime.Now.ToString("MMddyyyy");
+                    string logfilename = csName + dtt + ".txt";
+
+                    FileStream filestream = new FileStream(log + logfilename, FileMode.Create);
+                    var streamwriter = new StreamWriter(filestream);
+                    streamwriter.AutoFlush = true;
+                    Console.SetOut(streamwriter);
+                    Console.SetError(streamwriter);
+
+                    string mEmailTo = ol.Name;                                                  //ConfigurationManager.AppSettings["EmailTo"].ToString().Split(',');
+                    string mEmailFrom = "wilsmi@guhring.com";                                   //ConfigurationManager.AppSettings["EmailFrom"];
+                    string mEmailSubject = "Response from Germany, for Online Expedites";       //ConfigurationManager.AppSettings["EmailSubject"];
+
+                    ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
+                    service.UseDefaultCredentials = true;
+                    service.AutodiscoverUrl(mEmailFrom, RedirectionUrlValidationCallback);
+
+                    EmailMessage message = new EmailMessage(service);
+
+                    message.ToRecipients.Add(ol.Email);
+                    message.Subject = mEmailSubject;
+                    message.Body = new MessageBody();
+                    message.Body.BodyType = BodyType.HTML;
+                    message.Body = msg;
+
+                    streamwriter.WriteLine("Sending email...");
+                    //message.Send();
+                    streamwriter.WriteLine("Email Sent....!");
+                }
+                using (var dbCtx = new InternalEntities())
+                {
+                    dbCtx.Entry(ol).State = System.Data.Entity.EntityState.Modified;
+
+                    dbCtx.SaveChanges();
                 }
 
-                //using (var dbCtx = new InternalEntities())
-                //{
-                //    dbCtx.Entry(ol).State = System.Data.Entity.EntityState.Modified;
+                
+                //responseList.Add(ol);
 
-                //    dbCtx.SaveChanges();
-                //}
-
-                responseList.Add(ol);  
             }
 
-            //foreach (var r in responseList)
-            //{
-            //   responseList.
-                
-            //}
+            //SendEmailToAdmins();
         }
+
+        //private void SendEmailToAdmins()
+        //{
+
+        //}
 
         public static string GetCellValue(SpreadsheetDocument document, Cell cell)
         {
