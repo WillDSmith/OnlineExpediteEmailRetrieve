@@ -30,5 +30,7 @@ namespace OLEemailRetrieve
         public string RequestorEmailAddress { get; set; }
         public string CSNotes { get; set; }
         public string GermanyResponder { get; set; }
+        public string CSFirstName { get; set; }
+        public string CSLastName { get; set; }
     }
 }

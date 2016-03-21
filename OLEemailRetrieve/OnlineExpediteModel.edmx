@@ -11,6 +11,8 @@
           </Key>
           <Property Name="RequestId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="50" />
+          <Property Name="CSFirstName" Type="nvarchar" MaxLength="50" />
+          <Property Name="CSLastName" Type="nvarchar" MaxLength="50" />
           <Property Name="Email" Type="nvarchar" MaxLength="50" />
           <Property Name="CreationDate" Type="datetime" />
           <Property Name="EDPToolNumber" Type="nvarchar" MaxLength="50" />
@@ -53,6 +55,8 @@
           <Property Name="RequestorEmailAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="CSNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="GermanyResponder" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CSFirstName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CSLastName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityContainer Name="InternalEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="OnlineExpedites" EntityType="Self.OnlineExpedite" />
@@ -66,6 +70,8 @@
           <EntitySetMapping Name="OnlineExpedites">
             <EntityTypeMapping TypeName="InternalModel.OnlineExpedite">
               <MappingFragment StoreEntitySet="OnlineExpedite">
+                <ScalarProperty Name="CSLastName" ColumnName="CSLastName" />
+                <ScalarProperty Name="CSFirstName" ColumnName="CSFirstName" />
                 <ScalarProperty Name="GermanyResponder" ColumnName="GermanyResponder" />
                 <ScalarProperty Name="RequestId" ColumnName="RequestId" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
