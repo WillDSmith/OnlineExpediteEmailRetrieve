@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Conversion.cs" />
+    <Compile Include="ResponseExecuted.cs" />
     <Compile Include="OnlineExpedite.cs">
       <DependentUpon>OnlineExpediteModel.tt</DependentUpon>
     </Compile>
