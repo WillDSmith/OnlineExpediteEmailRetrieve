@@ -51,74 +51,73 @@ namespace OLEemailRetrieve
             }
             dt.Rows.RemoveAt(0); // Remove header row.
 
-            //#region Email To Individual Reps
-            //for (int i = 0; i < dt.Rows.Count; i++)
-            //{
-            //    DataRow dr = dt.Rows[i];
-            //    var RequestId = Convert.ToInt32(dr["Request Id"]);
-            //    var Response = dr["Response"].ToString();
-            //    var GermanyResponder = dr["Germany Responder"].ToString();
-            //    var resp = db.OnlineExpedites.Where(x => x.RequestId == RequestId).FirstOrDefault<OnlineExpedite>();
+            #region Email To Individual Reps
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                DataRow dr = dt.Rows[i];
+                var RequestId = Convert.ToInt32(dr["Request Id"]);
+                var Response = dr["Response"].ToString();
+                var GermanyResponder = dr["Germany Responder"].ToString();
+                var resp = db.OnlineExpedites.Where(x => x.RequestId == RequestId).FirstOrDefault<OnlineExpedite>();
 
-            //    if (resp != null)
-            //    {
-            //        // Get the Customer Service email and send an email with the response from Germany
-            //        resp.Response = Response;
-            //        var csEmail = resp.Email;   //Make sure to change this back to resp.Email
-            //        var csFirstName = resp.CSFirstName;
-            //        var csLastName = resp.CSLastName;
-            //        var csCreationDate = resp.CreationDate;
-            //        var csEDPToolNumber = resp.EDPToolNumber;
-            //        var csName = csFirstName + " " + csLastName;
+                if (resp != null)
+                {
+                    // Get the Customer Service email and send an email with the response from Germany
+                    resp.Response = Response;
+                    var csEmail = resp.Email;   //Make sure to change this back to resp.Email
+                    var csFirstName = resp.CSFirstName;
+                    var csLastName = resp.CSLastName;
+                    var csCreationDate = resp.CreationDate;
+                    var csEDPToolNumber = resp.EDPToolNumber;
+                    var csName = csFirstName + " " + csLastName;
 
-            //        var msg = csName + ",<br/>" +
-            //            "<br/>Here's the response for the requests you sent on " + csCreationDate + ", click <a href=\"http://staging.guhring.com/CustomerService/OnlineExpedite\">here</a>, to go to the Online Expedites Page." +
-            //            "<br/><br/><b>Material Number:</b> " + "<font color=\"red\">" + csEDPToolNumber + "</font>" +
-            //            "<br/><b>Response:</b> " + "<font color=\"red\">" + resp.Response + "</font>";
+                    var msg = csName + ",<br/>" +
+                        "<br/>Here's the response for the requests you sent on " + csCreationDate + ", click <a href=\"http://staging.guhring.com/CustomerService/OnlineExpedite\">here</a>, to go to the Online Expedites Page." +
+                        "<br/><br/><b>Material Number:</b> " + "<font color=\"red\">" + csEDPToolNumber + "</font>" +
+                        "<br/><b>Response:</b> " + "<font color=\"red\">" + resp.Response + "</font>";
 
 
-            //        string log = @"CSLogs\";
-            //        string dtt = DateTime.Now.ToString("MMddyyyy");
-            //        string logfilename = csName + dtt + ".txt";
+                    string log = @"CSLogs\";
+                    string dtt = DateTime.Now.ToString("MMddyyyy");
+                    string logfilename = csName + dtt + ".txt";
 
-            //        FileStream filestream = new FileStream(log + logfilename, FileMode.Create);
-            //        var streamwriter = new StreamWriter(filestream);
-            //        streamwriter.AutoFlush = true;
-            //        Console.SetOut(streamwriter);
-            //        Console.SetError(streamwriter);
+                    FileStream filestream = new FileStream(log + logfilename, FileMode.Create);
+                    var streamwriter = new StreamWriter(filestream);
+                    streamwriter.AutoFlush = true;
+                    Console.SetOut(streamwriter);
+                    Console.SetError(streamwriter);
 
-            //        string mEmailTo = csName;                                                  //ConfigurationManager.AppSettings["EmailTo"].ToString().Split(',');
-            //        string mEmailFrom = "wilsmi@guhring.com";                                   //ConfigurationManager.AppSettings["EmailFrom"];
-            //        string mEmailSubject = "Response from Germany, for Online Expedites";       //ConfigurationManager.AppSettings["EmailSubject"];
+                    string mEmailTo = csName;                                                  //ConfigurationManager.AppSettings["EmailTo"].ToString().Split(',');
+                    string mEmailFrom = "wilsmi@guhring.com";                                   //ConfigurationManager.AppSettings["EmailFrom"];
+                    string mEmailSubject = "Response from Germany, for Online Expedites";       //ConfigurationManager.AppSettings["EmailSubject"];
 
-            //        ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
-            //        service.UseDefaultCredentials = true;
-            //        service.AutodiscoverUrl(mEmailFrom, RedirectionUrlValidationCallback);
+                    ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
+                    service.UseDefaultCredentials = true;
+                    service.AutodiscoverUrl(mEmailFrom, RedirectionUrlValidationCallback);
 
-            //        EmailMessage message = new EmailMessage(service);
+                    EmailMessage message = new EmailMessage(service);
 
-            //        message.ToRecipients.Add(csEmail);
-            //        message.Subject = mEmailSubject;
-            //        message.Body = new MessageBody();
-            //        message.Body.BodyType = BodyType.HTML;
-            //        message.Body = msg;
+                    message.ToRecipients.Add(csEmail);
+                    message.Subject = mEmailSubject;
+                    message.Body = new MessageBody();
+                    message.Body.BodyType = BodyType.HTML;
+                    message.Body = msg;
 
-            //        streamwriter.WriteLine("Sending email...");
-            //        message.Send();
-            //        streamwriter.WriteLine("Email Sent....!");
-            //    }
-           
-            //    using (var dbCtx = new InternalEntities())
-            //    {
-            //        dbCtx.Entry(resp).State = System.Data.Entity.EntityState.Modified;
+                    streamwriter.WriteLine("Sending email...");
+                    message.Send();
+                    streamwriter.WriteLine("Email Sent....!");
+                }
 
-            //        dbCtx.SaveChanges();
-            //    }
-            //}
-            //#endregion
+                using (var dbCtx = new InternalEntities())
+                {
+                    dbCtx.Entry(resp).State = System.Data.Entity.EntityState.Modified;
+
+                    dbCtx.SaveChanges();
+                }
+            }
+            #endregion
 
             #region Email TO Administrators
-            var dailyList = new List<Object>();
             List<ResponseExecuted> listResponseExecuted = new List<ResponseExecuted>();
             for (int i = 0; i < dt.Rows.Count; i++)
             {
@@ -148,21 +147,26 @@ namespace OLEemailRetrieve
             List<string> lstmsgs = new List<string>(); 
            
             //string mEmailTo = csName; 
-            string mEmailTo = "wilsmi@guhring.com";                                     
-            string mEmailFrom = "wilsmi@guhring.com";
-            string mEmailSubject = "Online Expedites, Daily Reports";
-
-            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
-            service.UseDefaultCredentials = true;
-            service.AutodiscoverUrl(mEmailFrom, RedirectionUrlValidationCallback);
-
-            EmailMessage message = new EmailMessage(service);
-
-            message.ToRecipients.Add(mEmailTo);
-            message.Subject = mEmailSubject;
-            message.Body = new MessageBody();
-            message.Body.BodyType = BodyType.HTML;
+            String[] aEmailTo = ConfigurationManager.AppSettings["AdminsTo"].ToString().Split(',');
+            string aEmailFrom = ConfigurationManager.AppSettings["AdminsFrom"];
+            string aEmailSubject = ConfigurationManager.AppSettings["AdminsEmailSubject"];
             string greeting = "";
+            string lstOfResponses = "";
+
+            ExchangeService aService = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
+            aService.UseDefaultCredentials = true;
+            aService.AutodiscoverUrl(aEmailFrom, RedirectionUrlValidationCallback);
+
+            EmailMessage aMessage = new EmailMessage(aService);
+
+            foreach (String s in aEmailTo)
+            {
+                aMessage.ToRecipients.Add(s);
+            }
+            aMessage.Subject = aEmailSubject;
+            aMessage.Body = new MessageBody();
+            aMessage.Body.BodyType = BodyType.HTML;
+            
             foreach (var r in listResponseExecuted)
             {
                 greeting = "Greetings, <br/>" +
@@ -173,14 +177,13 @@ namespace OLEemailRetrieve
                         "<br/><b>Response:</b> " + "<font color=\"red\">" + r.eResponse + "</font>";
                 lstmsgs.Add(msg);
             }
-            string lstOfResponses = "";
-
+           
             var sb = new StringBuilder();
             lstmsgs.ForEach(s => sb.Append(s));
             lstOfResponses = sb.ToString();
-            
-            message.Body = greeting + lstOfResponses; 
-            message.Send();
+
+            aMessage.Body = greeting + lstOfResponses;
+            aMessage.Send();
            
             #endregion  
         }
