@@ -42,7 +42,8 @@ namespace OLEemailRetrieve
                 {
                     DataRow tempRow = dt.NewRow();
 
-                    for (int i = 0; i < row.Descendants<Cell>().Count(); i++)
+                    //for (int i = 0; i < row.Descendants<Cell>().Count(); i++)  // Was previously this, changed to dt.Columns.count
+                    for (int i = 0; i < dt.Columns.Count; i++)
                     {
                         tempRow[i] = GetCellValue(spreadSheetDocument, row.Descendants<Cell>().ElementAt(i));
                     }
@@ -69,25 +70,34 @@ namespace OLEemailRetrieve
                     var csLastName = resp.CSLastName;
                     var csCreationDate = resp.CreationDate;
                     var csEDPToolNumber = resp.EDPToolNumber;
+                    var csRequestor = resp.Requestor;
+                    var csRequestorPhone = resp.RequestorPhoneNumber;
+                    var csResquestorEmail = resp.RequestorEmailAddress;
+                    var csCSNotes = resp.CSNotes;
                     var csName = csFirstName + " " + csLastName;
 
                     var msg = csName + ",<br/>" +
                         "<br/>Here's the response for the requests you sent on " + csCreationDate + ", click <a href=\"http://staging.guhring.com/CustomerService/OnlineExpedite\">here</a>, to go to the Online Expedites Page." +
                         "<br/><br/><b>Material Number:</b> " + "<font color=\"red\">" + csEDPToolNumber + "</font>" +
-                        "<br/><b>Response:</b> " + "<font color=\"red\">" + resp.Response + "</font>";
+                        "<br/><b>Response:</b> " + "<font color=\"red\">" + resp.Response + "</font>" +
+                        "<br/><b>Requestor:</b> " + "<font color=\"red\">" + resp.Requestor + "</font>" +
+                        "<br/><b>Requestor Phone Number:</b> " + "<font color=\"red\">" + resp.RequestorPhoneNumber + "</font>" +
+                        "<br/><b>Requestor Email:</b> " + "<font color=\"red\">" + resp.RequestorEmailAddress + "</font>" +
+                        "<br/><b>CS Notes:</b> " + "<font color=\"red\">" + resp.CSNotes + "</font>";
+                        
 
 
-                    string log = @"CSLogs\";
-                    string dtt = DateTime.Now.ToString("MMddyyyy");
-                    string logfilename = csName + dtt + ".txt";
+                    //string log = @"CSLogs\";
+                    //string dtt = DateTime.Now.ToString("MMddyyyy");
+                    //string logfilename = csName + dtt + ".txt";
 
-                    FileStream filestream = new FileStream(log + logfilename, FileMode.Create);
-                    var streamwriter = new StreamWriter(filestream);
-                    streamwriter.AutoFlush = true;
-                    Console.SetOut(streamwriter);
-                    Console.SetError(streamwriter);
+                    //FileStream filestream = new FileStream(log + logfilename, FileMode.Create);
+                    //var streamwriter = new StreamWriter();
+                    //streamwriter.AutoFlush = true;
+                    //Console.SetOut(streamwriter);
+                    //Console.SetError(streamwriter);
 
-                    string mEmailTo = csName;                                                  //ConfigurationManager.AppSettings["EmailTo"].ToString().Split(',');
+                    string mEmailTo = csName;                                                   //ConfigurationManager.AppSettings["EmailTo"].ToString().Split(',');
                     string mEmailFrom = "wilsmi@guhring.com";                                   //ConfigurationManager.AppSettings["EmailFrom"];
                     string mEmailSubject = "Response from Germany, for Online Expedites";       //ConfigurationManager.AppSettings["EmailSubject"];
 
@@ -103,9 +113,9 @@ namespace OLEemailRetrieve
                     message.Body.BodyType = BodyType.HTML;
                     message.Body = msg;
 
-                    streamwriter.WriteLine("Sending email...");
+                    //streamwriter.WriteLine("Sending email...");
                     message.Send();
-                    streamwriter.WriteLine("Email Sent....!");
+                    //streamwriter.WriteLine("Email Sent....!");
                 }
 
                 using (var dbCtx = new InternalEntities())
@@ -137,7 +147,11 @@ namespace OLEemailRetrieve
                         eFirstName = resp.CSFirstName,
                         eLastName = resp.CSLastName,
                         eCreationDate = Convert.ToDateTime(resp.CreationDate),
-                        eMaterialNumber = resp.EDPToolNumber
+                        eMaterialNumber = resp.EDPToolNumber,
+                        eRequestor = resp.Requestor,
+                        eRequestorPhoneNumber = resp.RequestorPhoneNumber,
+                        eRequestorEmailAddress = resp.RequestorEmailAddress,
+                        eCSNotes = resp.CSNotes
                     };
 
                     listResponseExecuted.Add(data);
@@ -174,7 +188,13 @@ namespace OLEemailRetrieve
                 string msg = 
                         "<br/><br/><b>Customer Service Rep:</b> " + "<font color=\"red\">" + r.eFirstName + " " + r.eLastName + "</font>" +
                         "<br/><b>Material Number:</b> " + "<font color=\"red\">" + r.eMaterialNumber + "</font>" +
-                        "<br/><b>Response:</b> " + "<font color=\"red\">" + r.eResponse + "</font>";
+                        "<br/><b>Response:</b> " + "<font color=\"red\">" + r.eResponse + "</font>" +
+                        "<br/><b>Requestor:</b> " + "<font color=\"red\">" + r.eRequestor + "</font>" +
+                        "<br/><b>Requestor Phone Number:</b> " + "<font color=\"red\">" + r.eRequestorPhoneNumber + "</font>" +
+                        "<br/><b>Requestor Email:</b> " + "<font color=\"red\">" + r.eRequestorEmailAddress + "</font>" +
+                        "<br/><b>CS Noted:</b> " + "<font color=\"red\">" + r.eCSNotes + "</font>" +
+                        "<br/><b>Line Number:</b> " + "<font color=\"red\">" + r.eLineNumber + "</font>" +
+                        "<br/><b>P.O. To Germany:</b> " + "<font color=\"red\">" + r.ePurchaseOrderToGermany + "</font>"; ;
                 lstmsgs.Add(msg);
             }
            
@@ -191,7 +211,8 @@ namespace OLEemailRetrieve
         public static string GetCellValue(SpreadsheetDocument document, Cell cell)
         {
             SharedStringTablePart stringTablePart = document.WorkbookPart.SharedStringTablePart;
-            string value = cell.CellValue.InnerXml;
+            string value = "";
+            value = cell.CellValue.InnerXml;
 
             if (cell.DataType != null && cell.DataType.Value == CellValues.SharedString)
             {
