@@ -2,27 +2,22 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 namespace OLEemailRetrieve
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            InternalEntities db = new InternalEntities();
+            var ssConversion = new Conversion();
             
-            Conversion ssConversion = new Conversion();
-            
-            string dt = DateTime.Now.ToString("MMddyyyyhhmmss");
-            string path = @"ImportedFiles\";
-            string log = @"Logs\";
-            string logfilename = dt + ".txt";
+            var dt = DateTime.Now.ToString("MMddyyyyhhmmss");
+            var path = @"ImportedFiles\";
+            var log = @"Logs\";
+            var logfilename = dt + ".txt";
 
             try
             {
@@ -30,17 +25,15 @@ namespace OLEemailRetrieve
                 {
                     Directory.CreateDirectory(log);
                 }
-                //streamwriter.WriteLine("Logs directory created!");
             }
 
-            catch (Exception ex)
+            catch (Exception)
             {
-                //streamwriter.WriteLine(ex.ToString());
+                // ignored
             }
 
-            FileStream filestream = new FileStream(log + logfilename, FileMode.Create);
-            var streamwriter = new StreamWriter(filestream);
-            streamwriter.AutoFlush = true;
+            var filestream = new FileStream(log + logfilename, FileMode.Create);
+            var streamwriter = new StreamWriter(filestream) {AutoFlush = true};
             Console.SetOut(streamwriter);
             Console.SetError(streamwriter);
             
@@ -58,11 +51,10 @@ namespace OLEemailRetrieve
             }
 
             // Email App Settings
-            string mEmailTo = ConfigurationManager.AppSettings["EmailTo"];
-            string mEmailFrom = ConfigurationManager.AppSettings["EmailFrom"];
-            string mEmailSubject = ConfigurationManager.AppSettings["EmailSubject"];
+            var mEmailFrom = ConfigurationManager.AppSettings["EmailFrom"];
+            var mEmailSubject = ConfigurationManager.AppSettings["EmailSubject"];
             
-            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
+            var service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
 
             if (ConfigurationManager.AppSettings["UseDefault"] != "true")
             {
@@ -95,17 +87,18 @@ namespace OLEemailRetrieve
             }
 
             // Add a search filter that searches on the body or subject.
-            List<SearchFilter> searchFilterCollection = new List<SearchFilter>();
-            searchFilterCollection.Add(new SearchFilter.ContainsSubstring(ItemSchema.Subject, mEmailSubject));
+            var searchFilterCollection = new List<SearchFilter>
+            {
+                new SearchFilter.ContainsSubstring(ItemSchema.Subject, mEmailSubject)
+            };
             SearchFilter searchFilter = new SearchFilter.SearchFilterCollection(LogicalOperator.Or, searchFilterCollection.ToArray());
 
             // Create a view with a page size of 10.
-            ItemView view = new ItemView(10);
+            var view = new ItemView(10) {PropertySet = new PropertySet(BasePropertySet.IdOnly, ItemSchema.Subject)};
 
             // Identify the Subject and DateTimeReceived properties to return.
             // Indicate that the base property will be the item identifier
-            view.PropertySet = new PropertySet(BasePropertySet.IdOnly, ItemSchema.Subject);
-            
+
             // Order the search results by the DateTimeReceived in descending order.
             view.OrderBy.Add(ItemSchema.DateTimeReceived, SortDirection.Descending);
             
@@ -113,18 +106,27 @@ namespace OLEemailRetrieve
 
             FindItemsResults<Item> findResults = service.FindItems(WellKnownFolderName.Inbox, searchFilter, view);
 
-            foreach (Item item in findResults.Items)
+            foreach (var message in findResults.Items.Select(item => EmailMessage.Bind(service, new ItemId(item.Id.ToString()), new PropertySet(BasePropertySet.IdOnly, ItemSchema.Attachments))))
             {
-                // Bind to an existing message item, requesting its Id property plus its attachments collection.
-                EmailMessage message = EmailMessage.Bind(service, new ItemId(item.Id.ToString()), new PropertySet(BasePropertySet.IdOnly, ItemSchema.Attachments));
-
                 // Iterate through the attachments collection and load each attachment.
                 if (message.Attachments.Count == 1)
                 {
-                    foreach (Attachment attachment in message.Attachments)
+                    foreach (var fileAttachment in message.Attachments.OfType<FileAttachment>())
                     {
-                        FileAttachment fileAttachment = attachment as FileAttachment;
+                        fileAttachment.Load();
+                        streamwriter.WriteLine("Attachment name: " + fileAttachment.Name);
 
+                        // Load attachment contents into a file.
+                        fileAttachment.Load(path + fileAttachment.Name);
+
+                        var fileName = path + fileAttachment.Name;
+                        ssConversion.ConvertXls(fileName);
+                    }
+                }
+                else
+                {
+                    foreach (FileAttachment fileAttachment in from attachment in message.Attachments where attachment is FileAttachment && attachment.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" select attachment as FileAttachment)
+                    {
                         // Load the file attachment into memory and print out its file name.
                         fileAttachment.Load();
                         streamwriter.WriteLine("Attachment name: " + fileAttachment.Name);
@@ -132,32 +134,10 @@ namespace OLEemailRetrieve
                         // Load attachment contents into a file.
                         fileAttachment.Load(path + fileAttachment.Name);
 
-                        string fileName = path + fileAttachment.Name;
+                        var fileName = path + fileAttachment.Name;
                         ssConversion.ConvertXls(fileName);
                     }
                 }
-                else
-                {
-                    foreach (Attachment attachment in message.Attachments)
-                    {
-
-                        if (attachment is FileAttachment && attachment.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                        {
-                            FileAttachment fileAttachment = attachment as FileAttachment;
-
-                            // Load the file attachment into memory and print out its file name.
-                            fileAttachment.Load();
-                            streamwriter.WriteLine("Attachment name: " + fileAttachment.Name);
-
-                            // Load attachment contents into a file.
-                            fileAttachment.Load(path + fileAttachment.Name);
-
-                            string fileName = path + fileAttachment.Name;
-                            ssConversion.ConvertXls(fileName);
-                        }
-                    }
-                }
-                //streamwriter.WriteLine(item.Subject + "\n" + item.Id);
             }    
         }
         private static bool RedirectionUrlValidationCallback(string redirectionUrl)
